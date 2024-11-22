@@ -120,7 +120,7 @@ def compile(
     mxint8: bool = False,
     custom_io_file_path: Optional[str] = None,
     full_batch_size: Optional[int] = None,
-    enable_qnn: Optional[bool] = False,
+    enable_qnn: Optional[bool] = True,
     qnn_config: Optional[str] = None,
     **kwargs,
 ) -> str:

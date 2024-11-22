@@ -51,6 +51,12 @@ class QNN:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        # Temporary code to enable QNN and its config by default for QNN compilation via VLLM
+        # Get the directory of the current script
+        script_dir = os.path.dirname(__file__)
+        # Construct the path to the file
+        self.qnn_config_path = os.path.join(script_dir, 'qnn_config.json')
+
         # Parse qnn_config file if present.
         self.qnn_config = None
         if self.qnn_config_path:

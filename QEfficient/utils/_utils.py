@@ -182,7 +182,7 @@ def get_qpc_dir_name_infer(
     mxint8,
     device_group,
     full_batch_size,
-    enable_qnn: Optional[bool] = False,
+    enable_qnn: Optional[bool] = True,
 ):
     qpc_base_dir_name = (
         "qpc"
@@ -208,7 +208,7 @@ def get_qpc_dir_path(
     mxint8,
     device_group,
     full_batch_size,
-    enable_qnn: Optional[bool] = False,
+    enable_qnn: Optional[bool] = True,
 ):
     # Create a unique directory name for the QPC model based on all parameters
     qpc_base_dir_name = get_qpc_dir_name_infer(

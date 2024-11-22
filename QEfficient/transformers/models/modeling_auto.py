@@ -239,7 +239,7 @@ class QEFFAutoModelForCausalLM(QEFFTransformersBase):
         mxint8: bool = False,
         mos: int = -1,
         aic_enable_depth_first: bool = False,
-        enable_qnn: Optional[bool] = False,
+        enable_qnn: Optional[bool] = True,
         qnn_config: Optional[str] = None,
     ) -> str:
         """
@@ -318,7 +318,7 @@ class QEFFAutoModelForCausalLM(QEFFTransformersBase):
         aic_enable_depth_first: bool = False,
         qpc_dir_suffix: Optional[str] = None,
         full_batch_size: Optional[int] = None,
-        enable_qnn: Optional[bool] = False,
+        enable_qnn: Optional[bool] = True,
         qnn_config: Optional[str] = None,
     ) -> str:
         """

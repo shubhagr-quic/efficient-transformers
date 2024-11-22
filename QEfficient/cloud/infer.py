@@ -35,7 +35,7 @@ def main(
     local_model_dir: Optional[str] = None,
     cache_dir: Optional[str] = None,
     hf_token: Optional[str] = None,
-    enable_qnn: Optional[bool] = False,
+    enable_qnn: Optional[bool] = True,
     qnn_config: Optional[str] = None,
 ) -> None:
     """
