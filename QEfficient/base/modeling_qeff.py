@@ -98,7 +98,12 @@ class QEFFBaseModel(ABC):
             :num_cores (int): Number of cores to utilize in each device ``Defaults to 16``.
             :mxfp6_matmul (bool): Use MXFP6 to compress weights for MatMul nodes to run faster on device. ``Defaults to False``.
             :mxint8_kv_cache (bool): Use MXINT8 to compress KV-cache on device to access and update KV-cache faster. ``Defaults to False``.
-            :compiler_options: Pass any compiler option as input. Any flag that is supported by ``qaic-exec`` can be passed. Params are converted to flags as below:
+            :compiler_options: Pass any compiler option as input.
+            Following flag can be passed in compiler_options to enable QNN Compilation path.
+                :enable_qnn (bool): Enables QNN Compilation. ``Defaults to False. if not passed.``
+                :qnn_config (str): Path of QNN Config parameters file. ``Defaults to None. if not passed``
+                any other parameter passed will be ignored in QNN compilation path as we expect overriding or extra parameters for QNN via config file.
+            for QAIC compilation path, any flag that is supported by ``qaic-exec`` can be passed. Params are converted to flags as below:
                 - aic_num_cores=16 -> -aic-num-cores=16
                 - convert_to_fp16=True -> -convert-to-fp16
 
@@ -217,6 +222,7 @@ class QEFFBaseModel(ABC):
         onnx_path: Optional[str] = None,
         compile_dir: Optional[str] = None,
         *,
+        mxint8_kv_cache: bool = False,
         specializations: Optional[List[Dict[str, int]]] = None,
         custom_io: Optional[Dict[str, str]] = None,
         mdp_ts_num_devices: int = 1,
@@ -233,10 +239,36 @@ class QEFFBaseModel(ABC):
             :custom_io (dict): Custom IO to specify the input and outputs in different formats than default
             :mdp_ts_num_devices (int): Number of devices to partition to use Multi-Device Partitioning with tensor-slicing.
             :num_speculative_tokens (int, optional): Number of speculative tokens to take as input for Speculative Decoding Target Language Model.
-            :compiler_options: Pass any compiler option as input. Any flag that is supported by `qaic-exec` can be passed. Params are converted to flags as below:
+            :compiler_options: Pass any compiler option as input.
+            Following flag can be passed in compiler_options to enable QNN Compilation path.
+                :enable_qnn (bool): Enables QNN Compilation. ``Defaults to False. if not passed.``
+                :qnn_config (str): Path of QNN Config parameters file. ``Defaults to None. if not passed``
+                any other parameter passed will be ignored in QNN compilation path as we expect overriding or extra parameters for QNN via config file.
+            for QAIC compilation path, any flag that is supported by ``qaic-exec`` can be passed. Params are converted to flags as below:
                 - aic_num_cores=16 -> -aic-num-cores=16
                 - convert_to_fp16=True -> -convert-to-fp16
+
         """
+        enable_qnn = compiler_options["enable_qnn"] if "enable_qnn" in compiler_options else False
+        qnn_config = compiler_options["qnn_config"] if "qnn_config" in compiler_options else None
+
+        if enable_qnn:
+            return self._qnn_compile(
+                onnx_path,
+                compile_dir,
+                specializations=specializations,
+                prefill_seq_len=prefill_seq_len,
+                ctx_len=ctx_len,
+                batch_size=batch_size,
+                full_batch_size=full_batch_size,
+                mdp_ts_num_devices=mdp_ts_num_devices,
+                num_cores=compiler_options.get("aic_num_cores", 16),
+                mxfp6_matmul=compiler_options.get("mxfp6_matmul", False),
+                mxint8_kv_cache=mxint8_kv_cache,
+                qnn_config=qnn_config,
+                kv_cache_batch_size=kv_cache_batch_size,
+            )
+
         if onnx_path is None and self.onnx_path is None:
             self.export()
 
