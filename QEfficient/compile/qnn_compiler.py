@@ -7,11 +7,14 @@
 
 import os
 import shutil
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from QEfficient.utils._utils import create_json, execute_command, load_json
 from QEfficient.utils.constants import QnnConstants
-from QEfficient.utils.generate_qnn_network_specialization_config import fetch_nodes_info, generate_data_format_config
+from QEfficient.utils.generate_qnn_network_specialization_config import (
+    generate_data_format_config,
+    generate_qnn_specialization,
+)
 from QEfficient.utils.logging_utils import logger
 
 
@@ -31,9 +34,6 @@ class QNN:
         device_group: Optional[List[int]] = None,
         compiler_enable_depth_first: bool = False,
         compiler_max_out_channel_split: int = -1,
-        batch_size: int = 1,
-        prompt_len: int = 32,
-        ctx_len: int = 128,
         compiler_mxfp6_matmul_weights: bool = True,
         qnn_target: str = QnnConstants.TARGET,
         qnn_config_path: Optional[str] = None,
@@ -48,9 +48,6 @@ class QNN:
         self.device_group = device_group
         self.compiler_enable_depth_first = compiler_enable_depth_first
         self.compiler_max_out_channel_split = compiler_max_out_channel_split
-        self.batch_size = batch_size
-        self.prompt_len = prompt_len
-        self.ctx_len = ctx_len
         self.compiler_mxfp6_matmul_weights = compiler_mxfp6_matmul_weights
         self.qnn_config_path = qnn_config_path
         self.qnn_binary_dir = qnn_binary_dir
@@ -327,9 +324,6 @@ def compile(
     device_group: Optional[List[int]] = None,
     aic_enable_depth_first: bool = False,
     mos: int = -1,
-    batch_size: int = 1,
-    prompt_len: int = 32,
-    ctx_len: int = 128,
     mxfp6: bool = True,
     mxint8: bool = False,
     allow_mxint8_mdp_io: Optional[bool] = False,
@@ -337,6 +331,8 @@ def compile(
     qnn_config: Optional[str] = None,
     qnn_binary_dir: Optional[str] = None,
     kv_cache_batch_size: Optional[int] = None,
+    custom_io: Optional[Dict[str, str]] = None,
+    specializations: Optional[List[Dict[str, int]]] = None,
     **kwargs,
 ) -> str:
     """
@@ -377,16 +373,11 @@ def compile(
     # TODO To make custom_io_config.yaml configurable as not all models need it.
     custom_io_file_path = os.path.join(qpc_base_path, "custom_io_config.yaml")
 
-    kv_precision = "uint8" if mxint8 else "float16"
-    fetch_nodes_info(
+    generate_qnn_specialization(
         onnx_graph_path=onnx_path,
-        batch_size=batch_size,
-        sequence_length=prompt_len,
-        context_length=ctx_len,
+        specializations=specializations,
+        custom_io=custom_io,
         file_path=custom_io_file_path,
-        full_batch_size=full_batch_size,
-        kv_precision=kv_precision,
-        kv_cache_batch_size=kv_cache_batch_size,
     )
 
     if not os.path.isfile(custom_io_file_path):
@@ -403,9 +394,6 @@ def compile(
         custom_io_path=custom_io_file_path,
         compiler_enable_depth_first=aic_enable_depth_first,
         compiler_max_out_channel_split=mos,
-        batch_size=batch_size,
-        prompt_len=prompt_len,
-        ctx_len=ctx_len,
         compiler_mxfp6_matmul_weights=mxfp6,
         qnn_binary_dir=qnn_binary_dir,
         mxint8=mxint8,
