@@ -257,16 +257,12 @@ class QEFFBaseModel(ABC):
                 onnx_path,
                 compile_dir,
                 specializations=specializations,
-                prefill_seq_len=prefill_seq_len,
-                ctx_len=ctx_len,
-                batch_size=batch_size,
-                full_batch_size=full_batch_size,
+                custom_io=custom_io,
                 mdp_ts_num_devices=mdp_ts_num_devices,
                 num_cores=compiler_options.get("aic_num_cores", 16),
                 mxfp6_matmul=compiler_options.get("mxfp6_matmul", False),
                 mxint8_kv_cache=mxint8_kv_cache,
                 qnn_config=qnn_config,
-                kv_cache_batch_size=kv_cache_batch_size,
             )
 
         if onnx_path is None and self.onnx_path is None:
@@ -378,17 +374,13 @@ class QEFFBaseModel(ABC):
         onnx_path: Optional[str] = None,
         compile_dir: Optional[str] = None,
         *,
+        custom_io: Optional[Dict[str, str]] = None,
         specializations: Optional[List[Dict[str, int]]] = None,
-        prefill_seq_len: int = 32,
-        ctx_len: int = 128,
-        batch_size: int = 1,
-        full_batch_size: Optional[int] = None,
         mdp_ts_num_devices: int = 1,
         num_cores: int = 16,
         mxfp6_matmul: bool = False,
         mxint8_kv_cache: bool = False,
         qnn_config: Optional[str] = None,
-        kv_cache_batch_size: Optional[int] = None,
     ) -> str:
         """
         Interface for QNN compiler
@@ -397,16 +389,11 @@ class QEFFBaseModel(ABC):
             :onnx_path (str): Onnx file to compile
             :compile_dir (str): Directory path to compile the qpc. A suffix is added to the directory path to avoid reusing same qpc for different parameters.
             :specializations (list): List of specializations to compile for
-            :prefill_seq_len (int, optional): The length of the Prefill prompt should be less that ``prefill_seq_len``. ``Defaults to 32``.
-            :ctx_len (int, optional): Maximum ``ctx`` that the compiled model can remember. ``Defaults to 128``.
-            :batch_size (int, optional): Batch size. ``Defaults to 1``.
-            :full_batch_size (int, optional): Continuous batching batch size.
             :mdp_ts_num_devices (int): Number of devices to partition to use Multi-Device Partitioning with tensor-slicing.
             :num_cores (int): Number of cores used to compile the model.
             :mxfp6_matmul (bool, optional): Whether to use ``mxfp6`` compression for weights. ``Defaults to True``.
             :mxint8_kv_cache (bool, optional): Whether to use ``mxint8`` compression for KV cache. ``Defaults to False``.
             :qnn_config (str): Path of QNN Config parameters file. ``Defaults to None.``
-            :kv_cache_batch_size (int): kv_cache_batch_size for Prefix Caching. ``Defaults to None.``
         """
         if onnx_path is None and self.onnx_path is None:
             self.export()
@@ -421,6 +408,9 @@ class QEFFBaseModel(ABC):
 
         if specializations is not None:
             compile_hash.update(to_hashable(specializations))
+
+        if custom_io is not None:
+            compile_hash.update(to_hashable(custom_io))
 
         if qnn_config is not None:
             qnn_config_values = load_json(qnn_config)
@@ -458,15 +448,12 @@ class QEFFBaseModel(ABC):
             qpc_base_path=compile_dir,
             num_cores=num_cores,
             device_group=list(range(mdp_ts_num_devices)),
-            batch_size=batch_size,
-            prompt_len=prefill_seq_len,
-            ctx_len=ctx_len,
             mxfp6=mxfp6_matmul,
             mxint8=mxint8_kv_cache,
-            full_batch_size=full_batch_size,
             qnn_config=qnn_config,
             qnn_binary_dir=qpc_path,
-            kv_cache_batch_size=kv_cache_batch_size,
+            specializations=specializations,
+            custom_io=custom_io,
         )
 
         self.qpc_path = qpc_path

@@ -600,12 +600,7 @@ class _QEffAutoModelForImageTextToTextDualQPC:
         num_speculative_tokens: Optional[int] = None,
         **compiler_options,
     ) -> str:
-        if (
-            any(
-                param is not None
-                for param in [full_batch_size, kv_cache_batch_size, num_speculative_tokens]
-            )
-        ):
+        if any(param is not None for param in [full_batch_size, kv_cache_batch_size, num_speculative_tokens]):
             raise ValueError(
                 f"Expected 'full_batch_size', 'kv_cache_batch_size', 'num_speculative_tokens' to be None but got: "
                 f"full_batch_size={full_batch_size}, kv_cache_batch_size={kv_cache_batch_size}, num_speculative_tokens={num_speculative_tokens}, "
@@ -915,12 +910,7 @@ class _QEFFAutoModelForImageTextToTextSingleQPC(QEFFTransformersBase, Multimodal
         num_speculative_tokens: Optional[int] = None,
         **compiler_options,
     ) -> str:
-        if (
-            any(
-                param is not None
-                for param in [full_batch_size, kv_cache_batch_size, num_speculative_tokens]
-            )
-        ):
+        if any(param is not None for param in [full_batch_size, kv_cache_batch_size, num_speculative_tokens]):
             raise ValueError(
                 f"Expected 'full_batch_size', 'kv_cache_batch_size', 'num_speculative_tokens' to be None but got: "
                 f"full_batch_size={full_batch_size}, kv_cache_batch_size={kv_cache_batch_size}, num_speculative_tokens={num_speculative_tokens}, "
