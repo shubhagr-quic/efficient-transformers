@@ -20,7 +20,7 @@ def run_model(
     token,
     query,
     image_url,
-    kv_offload=False,
+    kv_offload=True,
     prefill_seq_len=32,
     ctx_len=512,
     generation_len=128,
@@ -49,6 +49,7 @@ def run_model(
         num_cores=num_cores,
         num_devices=num_devices,
         mxfp6_matmul=False,
+        enable_qnn=True,
     )
 
     ## STEP - 3 Load and process the inputs for Inference
